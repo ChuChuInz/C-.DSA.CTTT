@@ -1,3 +1,5 @@
+
+======HOMEWORK 1=======
 #include <iostream>
 #include <string>
 using namespace std;
@@ -126,5 +128,215 @@ int main() {
         }
     }
 
+    return 0;
+}
+=====HOMEWORK2======
+#include <iostream>
+#include <string>
+#include <vector>
+
+using namespace std;
+
+class Node {
+public:
+    string url;
+    Node* prev;
+    Node* next;
+
+    Node(string url) : url(url), prev(nullptr), next(nullptr) {}
+};
+
+class BrowserHistory {
+public:
+    Node* head;    // Head node for the homepage
+    Node* current; // Current node in the history
+
+    // Constructor to initialize with homepage URL
+    BrowserHistory(string homepage) {
+        head = new Node(homepage);  // Start with homepage
+        current = head;             // Current points to the head
+    }
+
+    // Visit a new URL and clear forward history
+    void visit(string url) {
+        Node* newNode = new Node(url);
+        current->next = newNode;   // Link current to the new node
+        newNode->prev = current;   // Link new node back to current
+        current = newNode;         // Move current to the new node
+    }
+
+    // Move back in history by a given number of steps
+    string back(int steps) {
+        while (steps > 0 && current->prev != nullptr) {
+            current = current->prev; // Move to the previous node
+            steps--;
+        }
+        return current->url; // Return the current URL
+    }
+
+    // Move forward in history by a given number of steps
+    string forward(int steps) {
+        while (steps > 0 && current->next != nullptr) {
+            current = current->next; // Move to the next node
+            steps--;
+        }
+        return current->url; // Return the current URL
+    }
+
+    ~BrowserHistory() {
+        Node* temp;
+        while (head) { // Cleanup all nodes starting from head
+            temp = head;
+            head = head->next;
+            delete temp;
+        }
+    }
+};
+
+// Function to process commands and simulate the browser history
+void processBrowserHistory() {
+    vector<string> commands = {"BrowserHistory", "visit", "visit", "visit", "back", "back", "forward", "visit", "forward", "back", "back"};
+    vector<vector<string>> args = {{"uit.edu.vn"}, {"google.com"}, {"facebook.com"}, {"youtube.com"}, {"1"}, {"1"}, {"1"}, {"linkedin.com"}, {"2"}, {"2"}, {"7"}};
+
+    BrowserHistory* browserHistory = nullptr; // Initialize BrowserHistory pointer
+    vector<string> results; // To store the results
+
+    for (size_t i = 0; i < commands.size(); ++i) {
+        string command = commands[i];
+
+        if (command == "BrowserHistory") {
+            // Create BrowserHistory instance with the homepage URL
+            browserHistory = new BrowserHistory(args[i][0]);
+            results.push_back("null");
+        } else if (command == "visit") {
+            // Visit the provided URL
+            browserHistory->visit(args[i][0]);
+            results.push_back("null");
+        } else if (command == "back") {
+            // Go back by the specified number of steps
+            int steps = stoi(args[i][0]);
+            results.push_back(browserHistory->back(steps));
+        } else if (command == "forward") {
+            // Go forward by the specified number of steps
+            int steps = stoi(args[i][0]);
+            results.push_back(browserHistory->forward(steps));
+        }
+    }
+
+    // Output the result as an array
+    cout << "[";
+    for (size_t i = 0; i < results.size(); ++i) {
+        cout << "\"" << results[i] << "\"";
+        if (i != results.size() - 1) cout << ", "; // Add commas between elements
+    }
+    cout << "]" << endl;
+
+    delete browserHistory;  // Cleanup memory
+}
+
+int main() {
+    processBrowserHistory();  // Process browser history commands
+    return 0;
+}
+=====HOMEWWORK3======
+#include <iostream>
+#include <string>
+using namespace std;
+
+class Token {
+public:
+    Token* next;
+    string tokenID;
+    int expiredTime;
+
+    Token(string id, int time) : tokenID(id), next(nullptr), expiredTime(time) {}
+};
+
+class AuthenticationManager {
+public:
+    Token* head;
+    int timeToLive;
+
+    AuthenticationManager(int ttl) {
+        timeToLive = ttl;
+        head = nullptr;
+    }
+
+    // Generate a new token
+    void generate(string tokenID, int currentTime) {
+        Token* newToken = new Token(tokenID, currentTime + timeToLive);
+        // Add token to head
+        newToken->next = head;
+        head = newToken;	
+    }
+
+    // Renew an unexpired token
+    void renew(string tokenID, int currentTime) {
+        Token* temp = head;
+        while (temp != nullptr) {
+            if (temp->tokenID == tokenID && temp->expiredTime > currentTime) {
+                temp->expiredTime = currentTime + timeToLive;
+                return; // Exit once the token is renewed
+            }
+            temp = temp->next;
+        }
+    }
+
+    // Count unexpired tokens and remove expired ones
+    int countUnexpiredTokens(int currentTime) {
+        int count = 0;
+        Token* temp = head;
+        Token* prev = nullptr;
+
+        while (temp != nullptr) {
+            if (temp->expiredTime > currentTime) {
+                count++; // Count unexpired tokens
+                prev = temp; // Keep track of the last unexpired token
+            } else {
+                // Remove expired token
+                if (prev == nullptr) {
+                    head = temp->next; // Update head if expired token is at the head
+                } else {
+                    prev->next = temp->next; // Bypass expired token
+                }
+                Token* deletedToken = temp; // Save expired token
+                temp = temp->next; // Move to next token
+                delete deletedToken; // Delete expired token
+                continue; // Skip to next iteration
+            }
+            temp = temp->next; // Move to next token
+        }
+        return count; // Return the count of unexpired tokens
+    }
+};
+
+int main() {
+    int timeToLive = 5; // Set Time To Live
+    AuthenticationManager* authManager = new AuthenticationManager(timeToLive);
+    cout << "null" << endl; // Output for the constructor
+
+    // Predefined commands and arguments
+    string commands[] = {"renew", "generate", "countUnexpiredTokens", "generate", "renew", "renew", "countUnexpiredTokens"};
+    string args[][2] = {{"aaa", "1"}, {"aaa", "2"}, {"6"}, {"bbb", "7"}, {"aaa", "8"}, {"bbb", "10"}, {"15"}};
+
+    for (int i = 0; i < 7; ++i) {
+        string command = commands[i];
+        if (command == "generate") {
+            string tokenId = args[i][0];
+            int currentTime = stoi(args[i][1]);
+            authManager->generate(tokenId, currentTime);
+            cout << "null" << endl; // Output for generate
+        } else if (command == "renew") {
+            string tokenId = args[i][0];
+            int currentTime = stoi(args[i][1]);
+            authManager->renew(tokenId, currentTime);
+            cout << "null" << endl; // Output for renew
+        } else if (command == "countUnexpiredTokens") {
+            int currentTime = stoi(args[i][0]);
+            cout << authManager->countUnexpiredTokens(currentTime) << endl; // Output count of unexpired tokens
+        }
+    }
+
+    delete authManager; // Cleanup
     return 0;
 }

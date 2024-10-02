@@ -1,0 +1,211 @@
+#include <iostream>
+using namespace std;
+
+// Node structure for the linked list
+struct Node {
+    int data;
+    Node* next;
+};
+
+// Queue class definition
+class Queue {
+private:
+    Node* front; // pointer to the front of the queue
+    Node* rear;  // pointer to the rear of the queue
+
+public:
+    // Constructor to initialize the queue
+    Queue() {
+        front = nullptr;
+        rear = nullptr;
+    }
+
+    // Function to check if the queue is empty
+    bool isEmpty() {
+        return front == nullptr;
+    }
+
+    // Since it's a linked list-based queue, it's never full
+    bool isFull() {
+        return false;
+    }
+
+    // Function to enqueue an element into the queue
+    void enqueue(int value) {
+        Node* newNode = new Node();
+        newNode->data = value;
+        newNode->next = nullptr;
+        if (isEmpty()) {
+            front = rear = newNode;
+        } else {
+            rear->next = newNode;
+            rear = newNode;
+        }
+        cout << value << " enqueued into the queue.\n";
+        displayQueue(); // Display the current queue after enqueuing
+    }
+
+    // Function to dequeue an element from the queue
+    int dequeue() {
+        if (isEmpty()) {
+            cout << "Queue underflow! Can't dequeue from an empty queue.\n";
+            return -1;
+        } else {
+            Node* temp = front;
+            int dequeuedValue = temp->data;
+            front = front->next;
+            if (front == nullptr) {
+                rear = nullptr; // Reset rear if queue becomes empty
+            }
+            delete temp;
+            cout << dequeuedValue << " dequeued from the queue.\n";
+            displayQueue(); // Display the current queue after dequeuing
+            return dequeuedValue;
+        }
+    }
+
+    // Function to remove a specific element from the queue
+    void removeElement(int value) {
+        if (isEmpty()) {
+            cout << "Queue is empty. Cannot remove element.\n";
+            return;
+        }
+
+        // Special case: if the element to remove is the front element
+        if (front->data == value) {
+            dequeue(); // Use dequeue function if the front element matches
+            return;
+        }
+
+        Node* current = front;
+        Node* previous = nullptr;
+
+        // Traverse the queue to find the element
+        while (current != nullptr && current->data != value) {
+            previous = current;
+            current = current->next;
+        }
+
+        // If the element is not found
+        if (current == nullptr) {
+            cout << "Element " << value << " not found in the queue.\n";
+            return;
+        }
+
+        // Remove the element
+        previous->next = current->next;
+        if (current == rear) {
+            rear = previous; // If the removed element was the rear, update rear
+        }
+
+        cout << "Element " << value << " removed from the queue.\n";
+        delete current;
+
+        displayQueue(); // Display the current queue after removing the element
+    }
+
+    // Function to display the front and rear elements of the queue
+    void displayFrontAndRear() {
+        if (isEmpty()) {
+            cout << "Queue is empty.\n";
+        } else {
+            cout << "Front element: " << front->data << "\n";
+            cout << "Rear element: " << rear->data << "\n";
+        }
+    }
+
+    // Function to display all elements in the queue
+    void displayQueue() {
+        if (isEmpty()) {
+            cout << "Queue is empty.\n";
+            return;
+        }
+        Node* temp = front;
+        cout << "Current queue: ";
+        while (temp != nullptr) {
+            cout << temp->data << " ";
+            temp = temp->next;
+        }
+        cout << endl;
+    }
+};
+
+// Main function to demonstrate the queue operations with a menu
+int main() {
+    Queue queue;
+    int choice, value, numElements;
+
+    do {
+        // Menu for queue operations
+        cout << "\n--- Queue Menu ---\n";
+        cout << "1. Initialize Queue\n";
+        cout << "2. Check if Queue is Empty\n";
+        cout << "3. Check if Queue is Full\n";
+        cout << "4. Enqueue an Element\n";
+        cout << "5. Dequeue an Element\n";
+        cout << "6. Display Front and Rear Elements\n";
+        cout << "7. Remove a Specific Element\n";
+        cout << "8. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1: // Initialize the queue
+                queue = Queue(); // Reset the queue
+                cout << "How many elements would you like to initialize the queue with? ";
+                cin >> numElements;
+                for (int i = 0; i < numElements; i++) {
+                    cout << "Enter element " << i + 1 << ": ";
+                    cin >> value;
+                    queue.enqueue(value); // Enqueue each element
+                }
+                cout << "Queue initialized with " << numElements << " elements.\n";
+                break;
+
+            case 2: // Check if the queue is empty
+                if (queue.isEmpty()) {
+                    cout << "Queue is empty.\n";
+                } else {
+                    cout << "Queue is not empty.\n";
+                }
+                break;
+
+            case 3: // Check if the queue is full
+                if (queue.isFull()) {
+                    cout << "Queue is full.\n";
+                } else {
+                    cout << "Queue is not full.\n";
+                }
+                break;
+
+            case 4: // Enqueue an element
+                cout << "Enter value to enqueue: ";
+                cin >> value;
+                queue.enqueue(value);
+                break;
+
+            case 5: // Dequeue an element
+                queue.dequeue();
+                break;
+
+            case 6: // Display front and rear elements
+                queue.displayFrontAndRear();
+                break;
+
+            case 7: // Remove a specific element
+                cout << "Enter value to remove: ";
+                cin >> value;
+                queue.removeElement(value);
+                break;
+
+            case 8: // Exit the program
+                cout << "Exiting...\n";
+                break;
+
+            default:
+                cout << "Invalid choice! Please try again.\n";
+        }
+    } while (choice != 8); // Keep showing the menu until the user selects to exit
+
+    return 0;
+}

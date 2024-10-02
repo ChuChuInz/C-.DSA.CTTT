@@ -1,0 +1,130 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+class node {
+public:
+    string song;
+    node* next;
+    node* prev;
+
+    node(string value) : song(value), next(nullptr), prev(nullptr) {}
+};
+
+class CircularLinkedList {
+public:
+    node* head;
+    node* current;
+
+    CircularLinkedList() : head(nullptr), current(nullptr) {}
+
+    // add a song to the playlist
+    void addsong(string songname) {
+        node* newnode = new node(songname);
+        if (head == nullptr) {
+            head = newnode; // if the list is empty, set the head to the new node
+            head->next = head;  
+            head->prev = head; 
+            current = head; 
+        } else {
+            node* tail = head->prev; // find the current tail
+            tail->next = newnode; // link the new song after the tail
+            newnode->prev = tail; // link the new song back to the tail
+            newnode->next = head;
+            head->prev = newnode; // update head's prev to the new node
+        }
+    }
+
+    // play the next song
+    void playnext() {
+        if (current != nullptr) {
+            current = current->next;
+        }
+    }
+
+    // play the previous song
+    void playprev() {
+        if (current != nullptr) {
+            current = current->prev;
+        }
+    }
+
+    // remove a song 
+    void removesong(string songname) {
+        if (head == nullptr) return; // if the list is empty, do nothing
+
+        node* temp = head;
+
+        do {
+            if (temp->song == songname) {
+                // if there's only one song in the list
+                if (temp->next == temp) {
+                    delete temp;
+                    head = nullptr;
+                    current = nullptr;
+                    return;
+                }
+
+                // if removing the head
+                if (temp == head) {
+                    head->prev->next = head->next; // link the tail to the next song
+                    head->next->prev = head->prev; // link the next song back to the tail
+                    head = head->next; // move head to the next song
+                } else {
+                    // linlk the previous node to the next node
+                    temp->prev->next = temp->next;
+                    temp->next->prev = temp->prev;
+                }
+                
+                if (current == temp) {
+                    current = temp->next; // move to the next ong after removing current
+                }
+
+                delete temp;
+                return;
+            }
+            temp = temp->next;
+        } while (temp != head);
+    }
+
+    // display the playlist 
+    void display() {
+        if (head == nullptr) {
+            cout << "empty" << endl;
+            return;
+        }
+
+        node* temp = current;
+        do {
+            cout << temp->song << " ";
+            temp = temp->next;
+        } while (temp != current); // run until, program reaches theinitail song again
+        cout << endl;
+    }
+};
+
+int main() {
+    CircularLinkedList playlist;
+    int n;
+    cin >> n;
+    string catcute, songname;
+
+    for (int i = 0; i < n; ++i) {
+        cin >> catcute;
+        if (catcute == "ADD") {
+            cin >> songname;
+            playlist.addsong(songname);
+        } else if (catcute == "NEXT") {
+            playlist.playnext();
+        } else if (catcute == "PREV") {
+            playlist.playprev();
+        } else if (catcute == "REMOVE") {
+            cin >> songname;
+            playlist.removesong(songname);
+        } else if (catcute== "DISPLAY") {
+            playlist.display(); 
+        }
+    }
+
+    return 0;
+}

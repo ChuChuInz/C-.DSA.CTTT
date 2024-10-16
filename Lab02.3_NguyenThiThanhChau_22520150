@@ -1,0 +1,419 @@
+//ChauNguyeThiThanh
+
+
+//DSA 1
+#include <iostream>
+#include <iomanip>
+
+using namespace std;
+
+// Node class representing each element in the stack
+class Node {
+    public:
+    int value;      // The value of the node (disk size)
+    Node* next;     // Pointer to the next node in the stack
+};
+
+// Stack class implementing the stack data structure using linked list
+class Stack {
+public:
+    // Constructor initializes the top of the stack as null
+    Stack() : top(nullptr) {}
+
+    // Push a new value (disk) onto the stack
+    void push(int value) {
+        Node* newNode = new Node;  // Create a new node
+        newNode->value = value;    // Assign value to the node
+        newNode->next = top;       // Point the new node to the current top
+        top = newNode;             // Set the new node as the top of the stack
+    }
+
+    // Pop (remove) the top element from the stack and return its value
+    int pop() {
+        if (top == nullptr) {      // Check if the stack is empty
+            cerr << "Error: Cannot pop from an empty stack." << endl;
+            return -1;  // Special value to indicate an error
+        }
+        int value = top->value;    // Store the value of the top node
+        Node* temp = top;          // Temporarily store the top node
+        top = top->next;           // Move the top pointer to the next node
+        delete temp;               // Free memory of the removed node
+        return value;              // Return the value of the popped node
+    }
+
+    // Return the value of the top element without removing it
+    int topValue() {
+        if (top == nullptr) {      // Check if the stack is empty
+            cerr << "Error: Stack is empty." << endl;
+            return -1;             // Special value to indicate an error
+        }
+        return top->value;         // Return the value of the top node
+    }
+
+    // Check if the stack is empty
+    bool isEmpty() {
+        return top == nullptr;
+    }
+
+    // Display all elements in the stack
+    void display() {
+        Node* current = top;       // Start from the top of the stack
+        cout << "STACK = < ";
+        while (current != nullptr) {    // Traverse the stack
+            cout << current->value << " ";  // Print each value
+            current = current->next;        // Move to the next node
+        }
+        cout << ">" << endl;
+    }
+
+public:
+    Node* top; // Pointer to the top node of the stack
+};
+
+// Function to display the current state of the three towers
+void displayTowers(Stack& towerA, Stack& towerB, Stack& towerC) {
+    cout << "A Tower\n";
+    towerA.display();  // Display elements of Tower A
+    cout << "B Tower\n";
+    towerB.display();  // Display elements of Tower B
+    cout << "C Tower\n";
+    towerC.display();  // Display elements of Tower C
+    cout << "===================\n";
+}
+
+// Function to check if a move from the source stack to the destination stack is valid
+bool isValidMove(Stack& source, Stack& destination) {
+    if (source.isEmpty()) {  // Can't move from an empty stack
+        cerr << "Error: Cannot move from an empty source stack." << endl;
+        return false;
+    }
+
+    if (destination.isEmpty()) {  // If destination is empty, the move is valid
+        return true;
+    }
+
+    // A valid move occurs when the top value of the source stack is smaller than the destination's top value
+    return source.topValue() < destination.topValue();
+}
+
+// Function to move a disk from source stack to destination stack
+void moveDisk(Stack& source, Stack& destination) {
+    if (isValidMove(source, destination)) {  // Ensure the move is valid
+        int disk = source.pop();             // Pop the disk from source stack
+        if (disk != -1) {                    // Check if the pop operation was successful
+            destination.push(disk);          // Push the disk onto the destination stack
+        }
+    } else {
+        cerr << "Invalid move. Please try again." << endl;
+    }
+}
+
+// Function to check if the game is won (all disks are in Tower C in the correct order)
+bool isGameWon(Stack& towerC, int numDisks) {
+    if (towerC.isEmpty()) {  // If Tower C is empty, the game is not won
+        return false;
+    }
+
+    // Temporary pointer to traverse Tower C
+    Node* current = towerC.top;
+    int expectedDisk = 1;  // We expect the smallest disk at the top (1) and the largest at the bottom
+
+    // Traverse through the stack
+    while (current != nullptr) {
+        if (current->value != expectedDisk) {  // If disks are not in ascending order, game isn't won
+            return false;
+        }
+        current = current->next;  // Move to the next node
+        expectedDisk++;           // Move to the next expected larger disk
+    }
+
+    // Check if the number of disks matches the expected number
+    return expectedDisk - 1 == numDisks;
+}
+
+int main() {
+    const int numDisks = 3;  // Adjust the number of disks as needed
+
+    Stack towerA, towerB, towerC;
+
+    // Initialize tower A with disks in descending order (3, 2, 1)
+    for (int i = numDisks; i > 0; i--) {
+        towerA.push(i);
+    }
+
+    // Display instructions
+    cout << "=========== HA NOI TOWER ===========\n";
+    cout << "0. Creating Tower.\n";
+    cout << "1. A -> B.\n";
+    cout << "2. B -> A.\n";
+    cout << "3. B -> C.\n";
+    cout << "4. C -> B.\n";
+    cout << "5. C -> A.\n";
+    cout << "6. A -> C.\n";
+    cout << "===================================\n";
+
+    displayTowers(towerA, towerB, towerC);
+
+    int move;
+    // Loop until the game is won
+    while (!isGameWon(towerC, numDisks)) {
+        cout << "Please input a move (1-6): ";
+        cin >> move;
+
+        // Execute the move based on user input
+        switch (move) {
+            case 1:
+                moveDisk(towerA, towerB); // Move disk from A to B
+                break;
+            case 2:
+                moveDisk(towerB, towerA); // Move disk from B to A
+                break;
+            case 3:
+                moveDisk(towerB, towerC); // Move disk from B to C
+                break;
+            case 4:
+                moveDisk(towerC, towerB); // Move disk from C to B
+                break;
+            case 5:
+                moveDisk(towerC, towerA); // Move disk from C to A
+                break;
+            case 6:
+                moveDisk(towerA, towerC); // Move disk from A to C
+                break;
+            default:
+                cerr << "Invalid move. Please enter a number between 1 and 6." << endl;
+                continue;
+        }
+        
+        displayTowers(towerA, towerB, towerC); // Display the towers after each move
+    }
+
+    // Game is won
+    cout << "Congratulations! You won the Tower of Hanoi puzzle." << endl;
+
+    return 0;
+}
+
+//DSA 2
+//22520468
+//Nguyen Huy Hoang
+//Session 02 - Exercise 02
+#include <iostream>
+#include <string>
+#include <sstream>
+
+using namespace std;
+
+class Node {
+public:	
+    string url;
+    Node* prev;
+    Node* next;
+
+    Node(string url) : url(url), prev(nullptr), next(nullptr) {}
+};
+
+class BrowserHistory {
+public:
+    Node* current; // Current node in the history
+    Node* head;    // Head node for the homepage
+
+    // Constructor initializes the head to nullptr
+    BrowserHistory() {
+        head = nullptr;
+        current = nullptr;
+    }
+
+    // Visit a new URL and clear forward history
+    void visit(string url) {
+        Node* newNode = new Node(url);
+        if (current) {
+            current->next = newNode; // Link current to the new node
+            newNode->prev = current;  // Link new node back to current
+        } else {
+            head = newNode; // If it's the first visit, set head to the new node
+        }
+        current = newNode; // Move current to the new node
+    }
+
+    // Move back in history
+    string back() {
+        if (current && current->prev) {
+            current = current->prev; // Move to the previous node
+        }
+        return current ? current->url : "No previous URL"; // Return the current URL
+    }
+
+    // Move forward in history
+    string forward() {
+        if (current && current->next) {
+            current = current->next; // Move to the next node
+        }
+        return current ? current->url : "No forward URL"; // Return the current URL
+    }
+
+    ~BrowserHistory() {
+        Node* temp;
+        while (head) { // Cleanup all nodes starting from head
+            temp = head;
+            head = head->next;
+            delete temp;
+        }
+    }
+};
+
+// Function to process input and simulate the browser history
+void processBrowserHistory() {
+    BrowserHistory* browserHistory = new BrowserHistory(); // Create BrowserHistory instance
+
+    string command;
+    while (getline(cin, command)) { // Read full line for commands
+        if (command.substr(0, 5) == "visit") {
+            string urls = command.substr(6); // Get URLs part after "visit url: "
+            stringstream ss(urls);
+            string url;
+
+            while (getline(ss, url, ',')) { // Split by comma
+                browserHistory->visit(url);
+            }
+            cout << "visited url: " << urls << endl; // Output for visit
+        } else if (command == "back") {
+            cout << "current URL: " << browserHistory->back() << endl; // Output current URL after back
+        } else if (command == "forward") {
+            cout << "current URL: " << browserHistory->forward() << endl; // Output current URL after forward
+        }else if(command =="exit"){
+        	break;
+		}
+		 else {
+            cout << "Unknown command." << endl; // Handle unknown commands
+        }
+    }
+
+    delete browserHistory;  // Cleanup
+}
+
+int main() {
+    processBrowserHistory();  // Process browser history commands
+    return 0;
+}
+
+//DSA3
+#include <iostream>
+
+using namespace std;
+
+// Structure to represent a node in a stack (linked list)
+struct Node {
+    int value;   // The value stored in the node (person's height)
+    Node* next;  // Pointer to the next node in the stack
+};
+
+// Class Stack represents a stack data structure using linked list
+class Stack {
+public:
+    // Constructor to initialize the stack (top is nullptr)
+    Stack() : top(nullptr) {}
+
+    // Method to push a new value onto the stack
+    void push(int value) {
+        Node* newNode = new Node;  // Create a new node
+        newNode->value = value;    // Set the value of the new node
+        newNode->next = top;       // Link the new node to the current top
+        top = newNode;             // Update the top to the new node
+    }
+
+    // Method to pop the top value from the stack
+    int pop() {
+        if (top == nullptr) {  // Check if the stack is empty
+            cerr << "Error: Cannot pop from an empty stack." << endl;
+            return -1;  // Return -1 as an error indicator
+        }
+        int value = top->value;  // Get the value from the top node
+        Node* temp = top;        // Store the top node temporarily
+        top = top->next;         // Move the top pointer to the next node
+        delete temp;             // Free the memory of the popped node
+        return value;            // Return the value of the popped node
+    }
+
+    // Method to return the value of the top node without removing it
+    int topValue() {
+        if (top == nullptr) {  // Check if the stack is empty
+            cerr << "Error: Stack is empty." << endl;
+            return -1;  // Return -1 if the stack is empty
+        }
+        return top->value;  // Return the value of the top node
+    }
+
+    // Method to check if the stack is empty
+    bool isEmpty() {
+        return top == nullptr;  // Return true if top is nullptr
+    }
+
+    // Method to clear the stack by popping all elements
+    void clear() {
+        while (!isEmpty()) {  // Keep popping until the stack is empty
+            pop();
+        }
+    }
+
+private:
+    Node* top;  // Pointer to the top node in the stack
+};
+
+// Function to calculate how many people are visible for each person based on their heights
+void visiblePeople(int heights[], int n) {
+    int* answer = new int[n];  // Array to store the results (number of visible people)
+    for (int i = 0; i < n; i++) {
+        answer[i] = 0;  // Initialize all answers to 0
+    }
+
+    Stack stack;  // Create a stack to keep track of visible people
+
+    // Loop from the last person to the first person (right to left)
+    for (int i = n - 1; i >= 0; i--) {
+        int visibleCount = 0; // Initialize visible count for the current person
+
+        // Pop people from the stack who are shorter than the current person
+        while (!stack.isEmpty() && heights[i] > stack.topValue()) {
+            stack.pop(); 
+            visibleCount++; // Increment the count for each person popped
+        }
+
+        // If there are still people in the stack, the person at the top is visible
+        if (!stack.isEmpty()) {
+            visibleCount++; // Count the immediate visible person at the top of the stack
+        }
+
+        answer[i] = visibleCount; // Store the count of visible people for the current person
+
+        // Push the current person's height onto the stack
+        stack.push(heights[i]);
+    }
+
+    // Output the number of visible people for each person
+    for (int i = 0; i < n; i++) {
+        cout << answer[i] << " ";
+    }
+    cout << endl;
+
+    delete[] answer;  // Free the memory allocated for the answer array
+}
+
+int main() {
+    int n;
+    cout << "Enter the total of people: ";
+    cin >> n;  // Read the number of people
+
+    int* heights = new int[n];  // Dynamically allocate an array for the heights of the people
+    cout << "Enter their heights: ";
+    for (int i = 0; i < n; i++) {
+        cin >> heights[i];  // Input the heights
+    }
+
+    visiblePeople(heights, n);  // Call the function to calculate visible people
+
+    delete[] heights; // Clean up the memory allocated for heights
+    return 0;
+}
+
+//DSA4

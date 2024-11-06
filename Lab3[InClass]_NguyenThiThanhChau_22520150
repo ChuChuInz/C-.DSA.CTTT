@@ -1,0 +1,172 @@
+//Nguyen Thi Thanh Chau - 22520150
+#include <iostream>
+#include <string>
+#include <cmath>
+
+// Function prototypes for various searching algorithms and utilities
+int binarySearchFirst(int arr[], int size, int target); // Finds the first occurrence of a target in a sorted array
+int binarySearchLast(int arr[], int size, int target);  // Finds the last occurrence of a target in a sorted array
+int countOccurrences(int arr[], int size, int target);  // Counts occurrences of a target in a sorted array using binary search
+
+int jumpSearch(int arr[], int size, int target);        // Searches for a target in a sorted array with jump search
+
+int interpolationSearch(std::string arr[], int size, const std::string& target); // Interpolation search for strings
+
+int findMissingNumber(int arr[], int size);             // Finds a missing number in a range using binary search
+
+int bidirectionalBinarySearch(int arr[], int size, int target); // Searches for a target using a bidirectional approach
+
+void swap(int &a, int &b);                              // Swaps two integer values
+int partition(int arr[], int low, int high);            // Partitions the array around a pivot for quickselect
+int quickSelect(int arr[], int low, int high, int k);   // Selects the k-th smallest element using quickselect
+int kthSmallest(int arr[], int size, int k);            // Finds the k-th smallest element in an unsorted array
+
+void linearSearch(int arr[], int size, int target, int &comparisons); // Linear search with comparison count
+void binarySearch(int arr[], int size, int target, int &comparisons); // Binary search with comparison count
+
+int main() {
+    int choice;
+
+    // Menu-driven program allowing users to choose different search exercises
+    do {
+        std::cout << "\nMenu:\n";
+        std::cout << "1. Count Occurrences Using Binary Search\n";
+        std::cout << "2. Dynamic Step Size Jump Search\n";
+        std::cout << "3. Interpolation Search for Strings\n";
+        std::cout << "4. Find Missing Number Using Binary Search\n";
+        std::cout << "5. Multi-Search System (Linear and Binary)\n";
+        std::cout << "6. Bidirectional Binary Search\n";
+        std::cout << "7. Kth Smallest Element Using Binary Search\n";
+        std::cout << "8. Exit\n";
+        std::cout << "Enter your choice: ";
+        std::cin >> choice;
+
+        switch (choice) {
+            // Count occurrences of a target in a sorted array
+            case 1: {
+                int size, target;
+                std::cout << "Enter the size of the array: ";
+                std::cin >> size;
+                int arr[size];
+                std::cout << "Enter " << size << " sorted elements: ";
+                for (int i = 0; i < size; i++) std::cin >> arr[i];
+                std::cout << "Enter target to count occurrences: ";
+                std::cin >> target;
+                int count = countOccurrences(arr, size, target);
+                std::cout << "Count of " << target << " is: " << count << "\n";
+                break;
+            }
+            // Jump search for a target in a sorted array
+            case 2: {
+                int size, target;
+                std::cout << "Enter the size of the array: ";
+                std::cin >> size;
+                int arr[size];
+                std::cout << "Enter " << size << " sorted elements: ";
+                for (int i = 0; i < size; i++) std::cin >> arr[i];
+                std::cout << "Enter target to find using Jump Search: ";
+                std::cin >> target;
+                int index = jumpSearch(arr, size, target);
+                if (index != -1)
+                    std::cout << "Found at index: " << index << "\n";
+                else
+                    std::cout << "Not found\n";
+                break;
+            }
+            // Interpolation search for a target string in a sorted array of strings
+            case 3: {
+                int size;
+                std::cout << "Enter the number of strings: ";
+                std::cin >> size;
+                std::string arr[size];
+                std::cout << "Enter " << size << " lexicographically sorted strings: ";
+                for (int i = 0; i < size; i++) std::cin >> arr[i];
+                std::string target;
+                std::cout << "Enter target string to search: ";
+                std::cin >> target;
+                int index = interpolationSearch(arr, size, target);
+                if (index != -1)
+                    std::cout << "Found at index: " << index << "\n";
+                else
+                    std::cout << "Not found\n";
+                break;
+            }
+            // Binary search to find a missing number in a range
+            case 4: {
+                int size;
+                std::cout << "Enter the size of the array (excluding missing number): ";
+                std::cin >> size;
+                int arr[size];
+                std::cout << "Enter " << size << " sorted elements with one missing (0 to n): ";
+                for (int i = 0; i < size; i++) std::cin >> arr[i];
+                int missing = findMissingNumber(arr, size);
+                std::cout << "Missing number is: " << missing << "\n";
+                break;
+            }
+            // Linear and Binary search comparison
+            case 5: {
+                int size, target;
+                std::cout << "Enter the size of the array: ";
+                std::cin >> size;
+                int arr[size];
+                std::cout << "Enter " << size << " sorted elements: ";
+                for (int i = 0; i < size; i++) std::cin >> arr[i];
+                std::cout << "Enter target to search: ";
+                std::cin >> target;
+
+                int linearComparisons = 0, binaryComparisons = 0;
+                linearSearch(arr, size, target, linearComparisons);
+                binarySearch(arr, size, target, binaryComparisons);
+
+                std::cout << "Linear Search Comparisons: " << linearComparisons << "\n";
+                std::cout << "Binary Search Comparisons: " << binaryComparisons << "\n";
+                break;
+            }
+            // Bidirectional binary search for a target in a sorted array
+            case 6: {
+                int size, target;
+                std::cout << "Enter the size of the array: ";
+                std::cin >> size;
+                int arr[size];
+                std::cout << "Enter " << size << " sorted elements: ";
+                for (int i = 0; i < size; i++) std::cin >> arr[i];
+                std::cout << "Enter target to find using Bidirectional Binary Search: ";
+                std::cin >> target;
+                int index = bidirectionalBinarySearch(arr, size, target);
+                if (index != -1)
+                    std::cout << "Found at index: " << index << "\n";
+                else
+                    std::cout << "Not found\n";
+                break;
+            }
+            // Quickselect to find the k-th smallest element in an unsorted array
+            case 7: {
+                int size, k;
+                std::cout << "Enter the size of the array: ";
+                std::cin >> size;
+                int arr[size];
+                std::cout << "Enter " << size << " unsorted elements: ";
+                for (int i = 0; i < size; i++) std::cin >> arr[i];
+                std::cout << "Enter k to find kth smallest element: ";
+                std::cin >> k;
+                if (k > 0 && k <= size) {
+                    int result = kthSmallest(arr, size, k);
+                    std::cout << "The " << k << "th smallest element is: " << result << "\n";
+                } else {
+                    std::cout << "Invalid k\n";
+                }
+                break;
+            }
+            // Exit option
+            case 8:
+                std::cout << "Exiting program.\n";
+                break;
+            default:
+                std::cout << "Invalid choice. Please try again.\n";
+        }
+    } while (choice != 8);
+
+    return 0;
+}
+
+// Implementations of each search and utility function follow...

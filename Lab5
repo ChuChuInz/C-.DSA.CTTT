@@ -1,0 +1,644 @@
+-- Bai 1 --
+#include <iostream>
+#include <cstring>
+using namespace std;
+
+struct FileNode {
+    string name;
+    bool isFile;
+    FileNode* children[100];
+    int childCount;
+
+    FileNode(string name, bool isFile) : name(name), isFile(isFile), childCount(0) {}
+};
+
+class FileSystem {
+private:
+    FileNode* root;
+    FileNode* currentDir;
+
+    FileNode* findChild(FileNode* node, const string& name) {
+        for (int i = 0; i < node->childCount; i++) {
+            if (node->children[i]->name == name) return node->children[i];
+        }
+        return nullptr;
+    }
+
+public:
+    FileSystem() {
+        root = new FileNode("/", false);
+        currentDir = root;
+    }
+
+    void list() {
+        cout << "Contents of '" << currentDir->name << "':\n";
+        for (int i = 0; i < currentDir->childCount; i++) {
+            cout << (currentDir->children[i]->isFile ? "File: " : "Dir: ") 
+                 << currentDir->children[i]->name << endl;
+        }
+    }
+
+    void create(string name, bool isFile) {
+        if (findChild(currentDir, name)) {
+            cout << "Error: Already exists.\n";
+            return;
+        }
+        FileNode* newNode = new FileNode(name, isFile);
+        currentDir->children[currentDir->childCount++] = newNode;
+        cout << (isFile ? "File" : "Directory") << " created: " << name << endl;
+    }
+
+    void deleteItem(string name) {
+        for (int i = 0; i < currentDir->childCount; i++) {
+            if (currentDir->children[i]->name == name) {
+                delete currentDir->children[i];
+                for (int j = i; j < currentDir->childCount - 1; j++) {
+                    currentDir->children[j] = currentDir->children[j + 1];
+                }
+                currentDir->childCount--;
+                cout << "Deleted: " << name << endl;
+                return;
+            }
+        }
+        cout << "Error: Not found.\n";
+    }
+};
+
+int main() {
+    FileSystem fs;
+    fs.create("docs", false);
+    fs.create("file1.txt", true);
+    fs.list();
+    fs.deleteItem("docs");
+    fs.list();
+    return 0;
+}
+
+-- Bai 2 --
+#include <iostream>
+#include <cstring>
+using namespace std;
+
+struct XmlNode {
+    string tagName;
+    XmlNode* children[100];
+    int childCount;
+    XmlNode(string tag) : tagName(tag), childCount(0) {}
+};
+
+XmlNode* parseXML(const char* xml) {
+    XmlNode* root = new XmlNode("root");
+    XmlNode* child1 = new XmlNode("head");
+    XmlNode* child2 = new XmlNode("body");
+    root->children[root->childCount++] = child1;
+    root->children[root->childCount++] = child2;
+    return root;
+}
+
+void queryXml(XmlNode* root, const char* tagName) {
+    if (!root) return;
+    if (root->tagName == tagName) {
+        cout << "Found: " << tagName << endl;
+        return;
+    }
+    for (int i = 0; i < root->childCount; i++) {
+        queryXml(root->children[i], tagName);
+    }
+}
+
+int main() {
+    XmlNode* root = parseXML("<root><head></head><body></body></root>");
+    queryXml(root, "body");
+    return 0;
+}
+
+--bai 3 --
+#include <iostream>
+#include <cstring>
+using namespace std;
+
+struct HuffmanNode {
+    char ch;
+    int freq;
+    HuffmanNode* left;
+    HuffmanNode* right;
+
+    HuffmanNode(char ch, int freq) : ch(ch), freq(freq), left(nullptr), right(nullptr) {}
+};
+
+struct PriorityQueue {
+    HuffmanNode* nodes[100];
+    int size;
+
+    PriorityQueue() : size(0) {}
+
+    void push(HuffmanNode* node) {
+        nodes[size++] = node;
+        for (int i = size - 1; i > 0; i--) {
+            if (nodes[i]->freq < nodes[i - 1]->freq) {
+                swap(nodes[i], nodes[i - 1]);
+            }
+        }
+    }
+
+    HuffmanNode* pop() {
+        return nodes[--size];
+    }
+
+    bool empty() {
+        return size == 0;
+    }
+};
+
+HuffmanNode* buildHuffmanTree(const char* text) {
+    int freq[256] = {0};
+    for (int i = 0; text[i] != '\0'; i++) {
+        freq[text[i]]++;
+    }
+
+    PriorityQueue pq;
+    for (int i = 0; i < 256; i++) {
+        if (freq[i] > 0) {
+            pq.push(new HuffmanNode((char)i, freq[i]));
+        }
+    }
+
+    while (pq.size > 1) {
+        HuffmanNode* left = pq.pop();
+        HuffmanNode* right = pq.pop();
+        HuffmanNode* parent = new HuffmanNode('\0', left->freq + right->freq);
+        parent->left = left;
+        parent->right = right;
+        pq.push(parent);
+    }
+
+    return pq.pop();
+}
+
+void encodeHuffman(HuffmanNode* root, char* code, int depth, char codes[256][256]) {
+    if (!root) return;
+
+    if (root->ch != '\0') {
+        code[depth] = '\0';
+        strcpy(codes[(unsigned char)root->ch], code);
+    }
+
+    code[depth] = '0';
+    encodeHuffman(root->left, code, depth + 1, codes);
+
+    code[depth] = '1';
+    encodeHuffman(root->right, code, depth + 1, codes);
+}
+
+int main() {
+    const char* text = "huffman coding";
+    HuffmanNode* root = buildHuffmanTree(text);
+
+    char codes[256][256] = {0};
+    char code[256];
+    encodeHuffman(root, code, 0, codes);
+
+    cout << "Huffman Codes:\n";
+    for (int i = 0; i < 256; i++) {
+        if (codes[i][0] != '\0') {
+            cout << (char)i << ": " << codes[i] << endl;
+        }
+    }
+
+    return 0;
+}
+--bai 4--
+#include <iostream>
+using namespace std;
+
+char board[3][3];
+char currentPlayer = 'X';
+
+// Initialize the board
+void initializeBoard() {
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            board[i][j] = ' ';
+        }
+    }
+}
+
+// Print the board
+void printBoard() {
+    cout << "Current Board:\n";
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            cout << (board[i][j] == ' ' ? '.' : board[i][j]) << " ";
+        }
+        cout << endl;
+    }
+}
+
+// Check if a player has won
+char checkWin() {
+    // Check rows and columns
+    for (int i = 0; i < 3; i++) {
+        if (board[i][0] == board[i][1] && board[i][1] == board[i][2] && board[i][0] != ' ') return board[i][0];
+        if (board[0][i] == board[1][i] && board[1][i] == board[2][i] && board[0][i] != ' ') return board[0][i];
+    }
+    // Check diagonals
+    if (board[0][0] == board[1][1] && board[1][1] == board[2][2] && board[0][0] != ' ') return board[0][0];
+    if (board[0][2] == board[1][1] && board[1][1] == board[2][0] && board[0][2] != ' ') return board[0][2];
+    return ' '; // No winner
+}
+
+// Minimax algorithm to compute the best move
+int minimax(bool isMaximizing) {
+    char winner = checkWin();
+    if (winner == 'X') return -1; // AI wins
+    if (winner == 'O') return 1;  // Player wins
+
+    bool movesLeft = false;
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            if (board[i][j] == ' ') {
+                movesLeft = true;
+                break;
+            }
+        }
+    }
+    if (!movesLeft) return 0; // Draw
+
+    int bestScore = isMaximizing ? -1000 : 1000;
+
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            if (board[i][j] == ' ') {
+                board[i][j] = isMaximizing ? 'O' : 'X';
+                int score = minimax(!isMaximizing);
+                board[i][j] = ' ';
+                bestScore = isMaximizing ? max(bestScore, score) : min(bestScore, score);
+            }
+        }
+    }
+    return bestScore;
+}
+
+// AI makes the best move
+void aiMove() {
+    int bestScore = -1000, bestRow = -1, bestCol = -1;
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            if (board[i][j] == ' ') {
+                board[i][j] = 'O';
+                int score = minimax(false);
+                board[i][j] = ' ';
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestRow = i;
+                    bestCol = j;
+                }
+            }
+        }
+    }
+    board[bestRow][bestCol] = 'O';
+}
+
+// Main game loop
+int main() {
+    initializeBoard();
+    while (true) {
+        printBoard();
+        if (checkWin() == 'O') {
+            cout << "AI Wins!\n";
+            break;
+        }
+        if (checkWin() == 'X') {
+            cout << "You Win!\n";
+            break;
+        }
+
+        int row, col;
+        cout << "Enter your move (row and column): ";
+        cin >> row >> col;
+        if (board[row][col] != ' ') {
+            cout << "Invalid move! Try again.\n";
+            continue;
+        }
+        board[row][col] = 'X';
+
+        aiMove();
+
+        bool movesLeft = false;
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                if (board[i][j] == ' ') {
+                    movesLeft = true;
+                    break;
+                }
+            }
+        }
+        if (!movesLeft) {
+            cout << "It's a draw!\n";
+            break;
+        }
+    }
+    return 0;
+}
+--Bai 5--
+#include <iostream>
+#include <stack>
+using namespace std;
+
+struct TreeNode {
+    char val;
+    TreeNode* left;
+    TreeNode* right;
+    TreeNode(char v) : val(v), left(nullptr), right(nullptr) {}
+};
+
+TreeNode* buildExpressionTree(const string& postfix) {
+    stack<TreeNode*> st;
+    for (char ch : postfix) {
+        if (isdigit(ch)) {
+            st.push(new TreeNode(ch));
+        } else {
+            TreeNode* right = st.top(); st.pop();
+            TreeNode* left = st.top(); st.pop();
+            TreeNode* node = new TreeNode(ch);
+            node->left = left;
+            node->right = right;
+            st.push(node);
+        }
+    }
+    return st.top();
+}
+
+int evaluate(TreeNode* root) {
+    if (!root) return 0;
+    if (!root->left && !root->right) return root->val - '0';
+
+    int left = evaluate(root->left);
+    int right = evaluate(root->right);
+
+    switch (root->val) {
+        case '+': return left + right;
+        case '-': return left - right;
+        case '*': return left * right;
+        case '/': return left / right;
+    }
+    return 0;
+}
+
+int main() {
+    string postfix = "53+62/*";
+    TreeNode* root = buildExpressionTree(postfix);
+    cout << "Expression Result: " << evaluate(root) << endl;
+    return 0;
+}
+--bai 6--
+#include <iostream>
+#include <string>
+using namespace std;
+
+// Helper function to compute a simple hash
+string hashFunction(const string& data) {
+    unsigned long hash = 5381;
+    for (char c : data) {
+        hash = ((hash << 5) + hash) + c;
+    }
+    return to_string(hash);
+}
+
+// Merkle Tree Node
+struct MerkleNode {
+    string hash;
+    MerkleNode* left;
+    MerkleNode* right;
+
+    MerkleNode(string data) : hash(hashFunction(data)), left(nullptr), right(nullptr) {}
+    MerkleNode(MerkleNode* l, MerkleNode* r) : left(l), right(r) {
+        hash = hashFunction(l->hash + r->hash);
+    }
+};
+
+// Build Merkle Tree recursively
+MerkleNode* buildMerkleTree(string data[], int start, int end) {
+    if (start == end) {
+        return new MerkleNode(data[start]);
+    }
+
+    int mid = (start + end) / 2;
+    MerkleNode* left = buildMerkleTree(data, start, mid);
+    MerkleNode* right = buildMerkleTree(data, mid + 1, end);
+
+    return new MerkleNode(left, right);
+}
+
+// Print Merkle Tree (preorder traversal)
+void printMerkleTree(MerkleNode* root) {
+    if (!root) return;
+    cout << "Hash: " << root->hash << endl;
+    printMerkleTree(root->left);
+    printMerkleTree(root->right);
+}
+
+int main() {
+    string data[] = {"Block1", "Block2", "Block3", "Block4"};
+    int n = sizeof(data) / sizeof(data[0]);
+
+    MerkleNode* root = buildMerkleTree(data, 0, n - 1);
+
+    cout << "Merkle Tree Root Hash: " << root->hash << endl;
+    cout << "Merkle Tree Structure:\n";
+    printMerkleTree(root);
+
+    return 0;
+}
+--bai 7--
+#include <iostream>
+#include <string>
+using namespace std;
+
+// Employee Node
+struct EmployeeNode {
+    string name;
+    EmployeeNode* subordinates[10];
+    int subCount;
+
+    EmployeeNode(string empName) : name(empName), subCount(0) {}
+};
+
+// Add subordinate to an employee
+void addSubordinate(EmployeeNode* manager, EmployeeNode* subordinate) {
+    if (manager->subCount < 10) {
+        manager->subordinates[manager->subCount++] = subordinate;
+    } else {
+        cout << "Max subordinates reached for " << manager->name << endl;
+    }
+}
+
+// Print Organizational Chart
+void printChart(EmployeeNode* root, int level = 0) {
+    for (int i = 0; i < level; i++) cout << "  ";
+    cout << root->name << endl;
+    for (int i = 0; i < root->subCount; i++) {
+        printChart(root->subordinates[i], level + 1);
+    }
+}
+
+int main() {
+    EmployeeNode* ceo = new EmployeeNode("CEO");
+    EmployeeNode* vp1 = new EmployeeNode("VP1");
+    EmployeeNode* vp2 = new EmployeeNode("VP2");
+    EmployeeNode* manager1 = new EmployeeNode("Manager1");
+    EmployeeNode* manager2 = new EmployeeNode("Manager2");
+
+    addSubordinate(ceo, vp1);
+    addSubordinate(ceo, vp2);
+    addSubordinate(vp1, manager1);
+    addSubordinate(vp2, manager2);
+
+    cout << "Organizational Chart:\n";
+    printChart(ceo);
+
+    return 0;
+}
+--bai 8--
+#include <iostream>
+#include <string>
+using namespace std;
+
+struct Transaction {
+    string data;
+    Transaction(string data) : data(data) {}
+};
+
+// Merkle Tree Node for Blockchain
+struct MerkleNode {
+    string hash;
+    MerkleNode* left;
+    MerkleNode* right;
+
+    MerkleNode(string data) : hash(hashFunction(data)), left(nullptr), right(nullptr) {}
+    MerkleNode(MerkleNode* l, MerkleNode* r) : left(l), right(r) {
+        hash = hashFunction(l->hash + r->hash);
+    }
+
+    static string hashFunction(const string& data) {
+        unsigned long hash = 5381;
+        for (char c : data) {
+            hash = ((hash << 5) + hash) + c;
+        }
+        return to_string(hash);
+    }
+};
+
+MerkleNode* buildMerkleTree(Transaction transactions[], int start, int end) {
+    if (start == end) {
+        return new MerkleNode(transactions[start].data);
+    }
+
+    int mid = (start + end) / 2;
+    MerkleNode* left = buildMerkleTree(transactions, start, mid);
+    MerkleNode* right = buildMerkleTree(transactions, mid + 1, end);
+
+    return new MerkleNode(left, right);
+}
+
+int main() {
+    Transaction transactions[] = {
+        Transaction("Tx1"), Transaction("Tx2"), Transaction("Tx3"), Transaction("Tx4")
+    };
+    int n = sizeof(transactions) / sizeof(transactions[0]);
+
+    MerkleNode* root = buildMerkleTree(transactions, 0, n - 1);
+    cout << "Blockchain Merkle Tree Root Hash: " << root->hash << endl;
+
+    return 0;
+}
+--bai 9--
+#include <iostream>
+#include <string>
+using namespace std;
+
+// Node structure for Phylogenetic Tree
+struct PhyloNode {
+    string species;
+    PhyloNode* left;
+    PhyloNode* right;
+
+    PhyloNode(string s) : species(s), left(nullptr), right(nullptr) {}
+};
+
+void printPhyloTree(PhyloNode* root, int level = 0) {
+    if (!root) return;
+    for (int i = 0; i < level; i++) cout << "  ";
+    cout << root->species << endl;
+    printPhyloTree(root->left, level + 1);
+    printPhyloTree(root->right, level + 1);
+}
+
+int main() {
+    PhyloNode* root = new PhyloNode("Root");
+    root->left = new PhyloNode("Species1");
+    root->right = new PhyloNode("Species2");
+    root->left->left = new PhyloNode("Subspecies1A");
+    root->left->right = new PhyloNode("Subspecies1B");
+
+    cout << "Phylogenetic Tree:\n";
+    printPhyloTree(root);
+
+    return 0;
+}
+--bai 10--
+#include <iostream>
+using namespace std;
+
+struct TrieNode {
+    TrieNode* children[26];
+    bool isEndOfWord;
+
+    TrieNode() : isEndOfWord(false) {
+        for (int i = 0; i < 26; i++) children[i] = nullptr;
+    }
+};
+
+class Trie {
+private:
+    TrieNode* root;
+
+public:
+    Trie() {
+        root = new TrieNode();
+    }
+
+    void insert(const string& word) {
+        TrieNode* node = root;
+        for (char ch : word) {
+            int index = ch - 'a';
+            if (!node->children[index]) {
+                node->children[index] = new TrieNode();
+            }
+            node = node->children[index];
+        }
+        node->isEndOfWord = true;
+    }
+
+    bool search(const string& word) {
+        TrieNode* node = root;
+        for (char ch : word) {
+            int index = ch - 'a';
+            if (!node->children[index]) return false;
+            node = node->children[index];
+        }
+        return node->isEndOfWord;
+    }
+};
+
+int main() {
+    Trie trie;
+    trie.insert("hello");
+    trie.insert("world");
+
+    cout << "Search for 'hello': " << (trie.search("hello") ? "Found" : "Not Found") << endl;
+    cout << "Search for 'world': " << (trie.search("world") ? "Found" : "Not Found") << endl;
+    cout << "Search for 'notfound': " << (trie.search("notfound") ? "Found" : "Not Found") << endl;
+
+    return 0;
+}
